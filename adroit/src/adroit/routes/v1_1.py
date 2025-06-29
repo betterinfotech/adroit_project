@@ -1,10 +1,13 @@
 from flask import Blueprint, request, jsonify
 from typing import Any
+from adroit.auth import token_required, SECRET_KEY, VALID_USERS
+import jwt
 
 v1_1_blueprint: Blueprint = Blueprint("v1_1", __name__)
 
 
 @v1_1_blueprint.route("/add", methods=["GET"])
+@token_required
 def add_numbers_abs() -> Any:
     a_str: str | None = request.args.get("a")
     b_str: str | None = request.args.get("b")
@@ -27,4 +30,17 @@ def crash_route() -> None:
     # deliberate bug
     result = 1 / 0
     return jsonify({"result": result})
+
+
+@v1_1_blueprint.route("/login", methods=["POST"])
+def login() -> Any:
+    data = request.json
+    if not data:
+        return jsonify({"error": "Missing JSON body"}), 400
+    username = data.get("username")
+    password = data.get("password")
+    if username == "shane" and password == VALID_USERS.get(username):
+        token = jwt.encode({"username": username}, SECRET_KEY, algorithm="HS256")
+        return jsonify({"token": token}), 200
+    return jsonify({"error": "Invalid credentials"}), 401
 
