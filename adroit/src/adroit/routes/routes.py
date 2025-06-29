@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from typing import Any
+from adroit.auth import token_required
 
 v1_blueprint: Blueprint = Blueprint("v1", __name__)
 
